@@ -1,11 +1,13 @@
 #!/bin/bash
-# Drupal 9 Backup Script, Grabs MySQL DB and Static Site Files
+# A Basic Backup Script for Drupal and Backdrop websites. 
+# The script grabs MySQL DB and Static Site Files.
+# Ideally, this script shoudl be scheduled to run from CRON.
 # Setup variables
 echo "Setup Parameters"
 echo "1 = Site Name"
 echo "2 = Site Path"
 echo "3 = Location For Backups"
-echo "Example: ./back_me_up.sh gluebox.com /opt/www/gluebox.com /opt/backup"
+echo "Example: ./back_me_up.sh gluebox.com /opt/www/gluebox.com /opt/backups"
 echo ""
 sitename=$1
 sitepath=$2
@@ -70,3 +72,6 @@ tar cfz $fullbackup_path/$STATIC_FILES $sitepath 2>> $fullbackup_path/backup.log
 mysqldump -u $dbuser -p$dbpassword $dbname > $fullbackup_path/$SQL_FILES 2>>$fullbackup_path/backup.log
 echo "Backup Run Complete. Here are the details:"
 ls -lah $fullbackup_path
+
+
+
