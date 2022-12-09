@@ -1,5 +1,5 @@
 #!/bin/bash
-# A Basic Backup Script for Drupal and Backdrop websites. 
+# A basic backup script for Drupal and Backdrop websites. 
 # The script grabs MySQL DB and Static Site Files.
 # Ideally, this script shoudl be scheduled to run from CRON.
 # Setup variables
