@@ -1,5 +1,5 @@
 #!/bin/bash
-# A basic backup script for Drupal and Backdrop websites. 
+# A basic backup script for Backdrop websites.
 # The script grabs MySQL DB and Static Site Files.
 # Ideally, this script shoudl be scheduled to run from CRON.
 # Setup variables
@@ -21,36 +21,35 @@ fi
 # TODO; account for private files
 # privatefiles="/opt/www/$sitename/private"
 # Find the Drupal DB Name
-dbname="$(cat $sitepath/web/sites/default/settings.php | grep database\' | grep -v \* | grep -v \#)"
-dbname="${dbname//\'}"
-dbname="${dbname//database \=\> }"
-dbname="${dbname//\,}"
-dbname="${dbname// }"
-echo "DB Name:"$dbname
-## Find the Drupal DB User
-dbuser="$(cat $sitepath/web/sites/default/settings.php | grep username | grep -v \* | grep -v \# )"
-dbuser="${dbuser//\'username\'}"
-dbuser="${dbuser// => }"
-dbuser="${dbuser// \'}"
-dbuser="${dbuser// }"
-dbuser="${dbuser//\',}"
-echo "DB User Name:"$dbuser
-## Find the Drupal DB Password
-dbpassword="$(cat $sitepath/web/sites/default/settings.php | grep pass | grep -v \* | grep -v \#)"
-dbpassword="${dbpassword//\'}"
-dbpassword="${dbpassword//\,}"
-dbpassword="${dbpassword//=> }"
-dbpassword="${dbpassword// }"
-dbpassword="${dbpassword//password}"
-echo "DB Password: DO NOT DISPLAY"
-echo "Backup Path:"$backup_path
-## File Name Setup
+#dbname="$(cat $sitepath/settings.php | grep database\' | grep -v \* | grep -v \#)"
+# Find the Database setup string
+dbstring="$(cat $sitepath/settings.php | grep \$database\ \=)"
+#debug echo
+echo $dbstring
+# Find the Database Name
+# grabs the string found between a \ and ;"
+dbname_with="$(echo $dbstring | sed 's/\(^.*\/\)\(.*\)\(\;.*$\)/\2/')"
+# The last character of our variable should be a ' 
+# This is a hack because I could not escape the ' properly
+# Remove the last character of our variable (')
+dbname="$(echo ${dbname_with:0:-1})"
+# Debug Echo
+echo "DB NAME:$dbname"
+# removes string between a / and :
+dbuser="$(echo $dbstring| sed 's/\(^.*\/\)\(.*\)\(\:.*$\)/\2/')"
+# Debug Echo
+echo "DB User:$dbuser"
+dbpassword="$(echo $dbstring | sed 's/\(^.*:\)\(.*\)\(\@.*$\)/\2/')"
+# Debug Echo
+# echo "DB PASSWORD:$dbpassword"
+echo "DB Password: (The echo for this variable is commented out.)"
+# File Name Setup
 NOW=$(date +"%Y%m%d")
 echo "The time is now:"$NOW
 STATIC_FILES="$sitename.FILES.$NOW.tgz"
-echo "Static site files will go here:"$STATIC_FILES
+echo "Static site files will go here:$STATIC_FILES"
 SQL_FILES="$sitename.SQL.$NOW.sql"
-# Check for backup directory and log files
+## Check for backup directory and log files
 echo "Check if backup dir exists, else make it."
 fullbackup_path=$3"/"$1
 if [ -d "$fullbackup_path" ]; then
@@ -66,12 +65,12 @@ else
   echo "WARNING: ${fullbackup_path}/backup.log was not found. Adding new backup logfile"
   touch $fullbackup_path/backup.log
 fi
-# Backup and Zip Static Site Files
+## Backup and Zip Static Site Files
 tar cfz $fullbackup_path/$STATIC_FILES $sitepath 2>> $fullbackup_path/backup.log
-#Backup MySQL Databases
+##Backup MySQL Databases
 mysqldump -u $dbuser -p$dbpassword $dbname > $fullbackup_path/$SQL_FILES 2>>$fullbackup_path/backup.log
 echo "Backup Run Complete. Here are the details:"
 ls -lah $fullbackup_path
-
+#
 
 
