@@ -3,7 +3,7 @@
 # It is assumed that these files are getting moved off to nearline storage. 
 # Remove backups older than 12 hours
 echo "Run Parameters"
-echo "1 = File to backup files"
+echo "1 = Location where backup files are kept"
 echo "2 = Purge Files older than X minutes"
 echo "Example: ./purge_old_backups.sh /opt/www/backups 720"
 echo ""
