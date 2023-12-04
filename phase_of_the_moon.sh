@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "Hello World"
+echo "POM - Phaeses Of the Moon"
 
 # Check if the script can send an email
 if command -v mail &> /dev/null; then
