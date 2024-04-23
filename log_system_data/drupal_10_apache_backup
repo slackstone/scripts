@@ -1,0 +1,62 @@
+#!/bin/bash
+# This script assumes we are backing up an Apache Webserver
+############################
+#databasename="mysql-database"
+#dbpassword="mysql-user-password"
+#dbuser="mysql-user-name"
+#EMAIL="no-reply@gmail.com"
+#sitename="example.com"
+#siteroot="/opt/drupal/EXAMPLE.COM"
+#sitepath="/opt/drupal/EXAMPLE.COM/web"
+#privatefiles="/opt/drupal/EXAMPLE.COM/private"
+#backuppath="/opt/backup"
+#############################
+
+# Email text/message
+EMAILMESSAGE="msg.txt"
+
+# File Name Setup
+NOW=$(date +"%Y%m%d")
+STATIC_FILES="$sitename.FILES.$NOW.tgz"
+SQL_FILES="$sitename.SQL.$NOW.sql"
+SQL_ZIP="$sitename.SQL.$NOW.tgz"
+touch $backuppath/$sitename/tar_error.txt
+
+#Backup and Zip Static Site Files
+tar cvfz $backuppath/$sitename/$STATIC_FILES $sitepath $privatefiles /etc/apache2/sites-available /etc/apache2/sites-enabled $siteroot/composer.json $siteroot/composer.lock 2> $backuppath/$sitename/tar_error.txt
+
+echo "$sitename Static Site Backup Status" >> $backuppath/$sitename/$EMAILMESSAGE
+echo "------------------------" >> $backuppath/$sitename/$EMAILMESSAGE
+
+cat $backuppath/$sitename/tar_error.txt >> $backuppath/$sitename/$EMAILMESSAGE
+
+echo "------------------------" >> $backuppath/$sitename/$EMAILMESSAGE
+
+#Backup MySQL Databases
+mysqldump -u $dbuser -p$dbpassword $databasename > $backuppath/$sitename/$SQL_FILES 2>> $backuppath/$sitename/sql_error.txt
+
+#Zip SQL Files
+tar cvfz $backuppath/$sitename/$SQL_ZIP $backuppath/$sitename/*.sql 2>> $backuppath/$sitename/tar_error.txt
+
+#Cleanup SQL files
+rm $backuppath/$sitename/*.sql
+echo "$sitename SQL Backup Status" >> $backuppath/$sitename/$EMAILMESSAGE
+cat $backuppath/$sitename/sql_error.txt >> $backuppath/$sitename/$EMAILMESSAGE
+echo "-------------------------">> $backuppath/$sitename/$EMAILMESSAGE
+
+# Test for command results and drop in tmp file
+date >> $backuppath/$sitename/$EMAILMESSAGE
+echo $? >> $backuppath/$sitename/$EMAILMESSAGE
+echo "Date / Time Run" >> $backuppath/$sitename/$EMAILMESSAGE
+echo "--------------------------">> $backuppath/$sitename/$EMAILMESSAGE
+
+#Email Results of Backup
+SUBJECT="$sitename Site Backups"
+
+# send an email using /bin/mail
+/usr/bin/mail -s "$SUBJECT" "$EMAIL" < $backuppath/$sitename/$EMAILMESSAGE
+
+# Cleanup Tmp Fies
+rm $backuppath/$sitename/msg.txt
+rm $backuppath/$sitename/sql_error.txt
+rm $backuppath/$sitename/tar_error.txt
