@@ -1,4 +1,6 @@
-# Log System Data 
+#GlueBox core_sync
 This is GPL2 Licensed Code writen by Stephen Groundwater
 
-Copyright 2022
+Gluebox Core Sync (TM) // Tools for Web application management.
+Stephen Groundwater
+Copyright 2024
