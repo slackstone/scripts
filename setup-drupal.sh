@@ -5,6 +5,7 @@ echo "📦 Setting up Drupal from RSVP Composer project..."
 
 # Define target directory for installation
 DRUPAL_ROOT="/var/www/html/gluebox"
+COMPOSER_ALLOW_SUPERUSER=1 composer install
 
 # Composer project repo
 COMPOSER_REPO="https://github.com/slackstone/rsvp_composer.git"
