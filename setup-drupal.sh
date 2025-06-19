@@ -4,6 +4,7 @@ echo "📦 Setting up Drupal from RSVP Composer project..."
 
 DRUPAL_DIR="/var/www/html/gluebox"
 COMPOSER_REPO="https://github.com/slackstone/rsvp_composer.git"
+git config --global --add safe.directory /var/www/html/gluebox
 
 # Clone project if needed
 if [ ! -f "$DRUPAL_DIR/composer.json" ]; then
@@ -12,6 +13,7 @@ if [ ! -f "$DRUPAL_DIR/composer.json" ]; then
 fi
 
 cd "$DRUPAL_DIR" || exit 1
+git config --global --add safe.directory /var/www/html/gluebox
 
 # Run composer install safely
 echo "📦 Running composer install..."
