@@ -1,4 +1,3 @@
-setup-drupal.sh
 #!/bin/bash
 
 echo "📦 Setting up Drupal from RSVP Composer project..."
