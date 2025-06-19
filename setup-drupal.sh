@@ -2,58 +2,49 @@
 
 echo "📦 Setting up Drupal from RSVP Composer project..."
 
-# Define target directory for installation
-DRUPAL_ROOT="/var/www/html/gluebox"
-COMPOSER_ALLOW_SUPERUSER=1 composer install
-
-# Composer project repo
+DRUPAL_DIR="/var/www/html/gluebox"
 COMPOSER_REPO="https://github.com/slackstone/rsvp_composer.git"
 
-# Build if not already installed
-if [ ! -f "$DRUPAL_ROOT/composer.json" ]; then
+# Clone project if needed
+if [ ! -f "$DRUPAL_DIR/composer.json" ]; then
   echo "📁 Cloning RSVP Composer project..."
-  git clone "$COMPOSER_REPO" "$DRUPAL_ROOT"
-  cd "$DRUPAL_ROOT"
-  echo "📦 Running composer install..."
-  composer install
-else
-  echo "✅ Drupal project already present at $DRUPAL_ROOT"
+  git clone "$COMPOSER_REPO" "$DRUPAL_DIR"
 fi
 
-# Set permissions
+cd "$DRUPAL_DIR" || exit 1
+
+# Run composer install safely
+echo "📦 Running composer install..."
+COMPOSER_ALLOW_SUPERUSER=1 composer install
+
+# Permissions
 echo "🔧 Fixing permissions..."
-chown -R www-data:www-data "$DRUPAL_ROOT"
-chmod -R 755 "$DRUPAL_ROOT"
+chown -R www-data:www-data "$DRUPAL_DIR"
+chmod -R 755 "$DRUPAL_DIR"
 
-# Enable Apache rewrite module
-echo "🔄 Enabling Apache rewrite..."
-a2enmod rewrite
+# Apache config
+echo "🔄 Enabling Apache rewrite module..."
+a2enmod rewrite || true
 
-# Create Apache vhost if needed
+# Create vhost if missing
 VHOST="/etc/apache2/sites-available/gluebox.conf"
 if [ ! -f "$VHOST" ]; then
-  echo "📝 Creating Apache vhost for Drupal..."
+  echo "📝 Creating Apache vhost..."
   cat <<EOF > "$VHOST"
 <VirtualHost *:80>
-    ServerAdmin webmaster@localhost
-    DocumentRoot $DRUPAL_ROOT/web
-
-    <Directory $DRUPAL_ROOT/web>
-        AllowOverride All
-        Require all granted
-    </Directory>
-
-    ErrorLog \${APACHE_LOG_DIR}/gluebox-error.log
-    CustomLog \${APACHE_LOG_DIR}/gluebox-access.log combined
+  DocumentRoot $DRUPAL_DIR/web
+  <Directory $DRUPAL_DIR/web>
+    AllowOverride All
+    Require all granted
+  </Directory>
 </VirtualHost>
 EOF
-
   a2ensite gluebox.conf
   a2dissite 000-default.conf
 fi
 
-# Restart Apache
+# Try restarting Apache
 echo "🔁 Restarting Apache..."
-systemctl restart apache2
+service apache2 restart || echo "⚠️ Apache restart failed (expected in Cubic chroot)"
 
-echo "✅ Drupal is now available at: http://localhost"
+echo "✅ Drupal should be available at: http://localhost"
