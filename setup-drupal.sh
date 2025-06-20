@@ -4,31 +4,39 @@ echo "📦 Setting up Drupal from RSVP Composer project..."
 
 DRUPAL_DIR="/var/www/html/gluebox"
 COMPOSER_REPO="https://github.com/slackstone/rsvp_composer.git"
-git config --global --add safe.directory /var/www/html/gluebox
 
-# Clone project if needed
-if [ ! -f "$DRUPAL_DIR/composer.json" ]; then
+if [ ! -d "$DRUPAL_DIR" ]; then
   echo "📁 Cloning RSVP Composer project..."
   git clone "$COMPOSER_REPO" "$DRUPAL_DIR"
+else
+  echo "📥 Updating existing Drupal project..."
+  cd "$DRUPAL_DIR" || exit 1
+
+  # Ensure safe Git usage
+  git config --global --add safe.directory "$DRUPAL_DIR"
+
+  # Pull latest changes
+  git pull origin main
+
+  # Clean existing install if needed
+  rm -rf vendor/
+  rm -f composer.lock
 fi
 
 cd "$DRUPAL_DIR" || exit 1
-git config --global --add safe.directory /var/www/html/gluebox
 
-# Run composer install safely
 echo "📦 Running composer install..."
 COMPOSER_ALLOW_SUPERUSER=1 composer install
 
-# Permissions
+# Set permissions
 echo "🔧 Fixing permissions..."
 chown -R www-data:www-data "$DRUPAL_DIR"
 chmod -R 755 "$DRUPAL_DIR"
 
-# Apache config
+# Apache setup
 echo "🔄 Enabling Apache rewrite module..."
 a2enmod rewrite || true
 
-# Create vhost if missing
 VHOST="/etc/apache2/sites-available/gluebox.conf"
 if [ ! -f "$VHOST" ]; then
   echo "📝 Creating Apache vhost..."
@@ -41,12 +49,12 @@ if [ ! -f "$VHOST" ]; then
   </Directory>
 </VirtualHost>
 EOF
+
   a2ensite gluebox.conf
   a2dissite 000-default.conf
 fi
 
-# Try restarting Apache
 echo "🔁 Restarting Apache..."
-service apache2 restart || echo "⚠️ Apache restart failed (expected in Cubic chroot)"
+service apache2 restart || echo "⚠️ Apache restart failed (OK in Cubic chroot)"
 
-echo "✅ Drupal should be available at: http://localhost"
+echo "✅ Drupal is now ready at: http://localhost"
