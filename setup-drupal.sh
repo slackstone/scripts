@@ -14,6 +14,7 @@ else
 
   # Ensure safe Git usage
   git config --global --add safe.directory "$DRUPAL_DIR"
+  git config --global --add safe.directory /var/www/html
 
   # Pull latest changes
   git pull origin main
