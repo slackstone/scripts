@@ -18,9 +18,13 @@ else
   # Pull latest changes
   git pull origin main
 
-  # Clean existing install if needed
-  rm -rf vendor/
-  rm -f composer.lock
+echo "📥 Updating existing Drupal project..."
+cd "$DRUPAL_DIR" || exit 1
+git config --global --add safe.directory "$DRUPAL_DIR"
+git fetch origin
+git reset --hard origin/main
+git clean -fd
+
 fi
 
 cd "$DRUPAL_DIR" || exit 1
